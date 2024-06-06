@@ -49,11 +49,11 @@ export default async (req: Request, context: Context) => {
     sameSite: "None",
   });
   context.cookies.set({
-    name: "x_chatbot_key_cookie2",
+    name: "x_chatbot_key_cookie6",
     value: "rotatedToken",
     domain: ".dragonson.com",
     path: "/",
-    httpOnly: true,
+    httpOnly: false,
     secure: true,
     sameSite: "Lax",
   });
