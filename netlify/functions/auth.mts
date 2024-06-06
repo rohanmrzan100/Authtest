@@ -55,19 +55,20 @@ export default async (req: Request, context: Context) => {
       domain: ".dragonson.com",
       path: "/",
       httpOnly: false,
-      secure: false,
+      secure: true,
       sameSite: "None",
     });
+ 
+
     context.cookies.set({
       name: "account_id",
       value: accountId,
       domain: ".dragonson.com",
       path: "/",
       httpOnly: false,
-      secure: false,
+      secure: true,
       sameSite: "None",
     });
-
     return new Response(
       JSON.stringify({
         resource: {

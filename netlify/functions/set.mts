@@ -21,15 +21,7 @@ export default async (req: Request, context: Context) => {
     });
   }
 
-  context.cookies.set({
-    name: "x_chatbot_key",
-    value: "rotatedToken",
-    domain: "localhost",
-    path: "/",
-    httpOnly: false,
-    secure: true,
-    sameSite: "None",
-  });
+  
   context.cookies.set({
     name: "x_chatbot_key_cookie",
     value: "rotatedToken",
@@ -38,24 +30,6 @@ export default async (req: Request, context: Context) => {
     httpOnly: false,
     secure: true,
     sameSite: "None",
-  });
-  context.cookies.set({
-    name: "x_chatbot_key_cookie2",
-    value: "rotatedToken",
-    domain: ".dragonson.com",
-    path: "/",
-    httpOnly: false,
-    secure: false,
-    sameSite: "None",
-  });
-  context.cookies.set({
-    name: "x_chatbot_key_cookie6",
-    value: "rotatedToken",
-    domain: ".dragonson.com",
-    path: "/",
-    httpOnly: false,
-    secure: true,
-    sameSite: "Lax",
   });
 
   return new Response(JSON.stringify({ msg: "success" }), {

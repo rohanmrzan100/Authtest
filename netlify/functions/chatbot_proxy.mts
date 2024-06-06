@@ -67,13 +67,14 @@ export default async (req: Request, context: Context) => {
     context.cookies.set({
       name: "x_chatbot_key",
       value: rotatedToken,
-      domain: ".netlify.app",
+      domain: ".dragonson.com",
       path: "/",
       httpOnly: false,
       secure: true,
       sameSite: "None",
     });
 
+   
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: {
