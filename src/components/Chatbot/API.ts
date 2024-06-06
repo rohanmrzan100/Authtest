@@ -4,7 +4,7 @@ export async function QueryChatbotAPI(
   token: string,
   uuid: string
 ) {
-  const res = await fetch("http://localhost:8888/api/chatbot_proxy", {
+  const res = await fetch("https://developer.dragonson.com/api/chatbot_proxy", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

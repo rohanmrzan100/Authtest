@@ -203,7 +203,7 @@ const Chatbot = () => {
     console.log("Hello");
 
     window.location.href =
-      "https://app.dragonson.com/sso.html?action=login&src=developerhub&return_to=https://https://developer.dragonson.com/";
+      "https://app.dragonson.com/sso.html?action=login&src=developerhub&return_to=https://developer.dragonson.com";
     // setIsLoggedIn(true);
   }
   const chatboxRef = useRef<HTMLDivElement | null>(null);
