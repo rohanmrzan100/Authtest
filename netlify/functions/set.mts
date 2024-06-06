@@ -48,6 +48,15 @@ export default async (req: Request, context: Context) => {
     secure: false,
     sameSite: "None",
   });
+  context.cookies.set({
+    name: "x_chatbot_key_cookie2",
+    value: "rotatedToken",
+    domain: ".dragonson.com",
+    path: "/",
+    httpOnly: true,
+    secure: true,
+    sameSite: "Lax",
+  });
 
   return new Response(JSON.stringify({ msg: "success" }), {
     status: 200,
