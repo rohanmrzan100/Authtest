@@ -203,7 +203,7 @@ const Chatbot = () => {
     console.log("Hello");
 
     window.location.href =
-      "https://665db83777ed455dfb28f179--heartfelt-fox-6aa7cd.netlify.app/so.html?action=login&src=developerhub&return_to=https://deploy-preview-2--maharjanrohan.netlify.app/";
+      "https://app.dragonson.com/sso.html?action=login&src=developerhub&return_to=https://https://developer.dragonson.com/";
     // setIsLoggedIn(true);
   }
   const chatboxRef = useRef<HTMLDivElement | null>(null);
