@@ -7,6 +7,7 @@ interface Body {
 }
 export default async (req: Request, context: Context) => {
   const header = {
+    // "Access-Control-Allow-Origin": "https://qa.harness.io",
     "Access-Control-Allow-Origin": "https://app.dragonson.com",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
@@ -39,7 +40,7 @@ export default async (req: Request, context: Context) => {
   }
 
   try {
-    const uuid = await getUUID(accountId, accessToken);
+    const { uuid, name } = await getUUID(accountId, accessToken);
     if (!uuid) {
       return;
     }
@@ -48,6 +49,9 @@ export default async (req: Request, context: Context) => {
     if (!token) {
       throw new Error("Token creation failed");
     }
+
+    const expiryTime = new Date();
+    expiryTime.setMinutes(expiryTime.getMinutes() + 120);
     context.cookies.set({
       name: "x_chatbot_key",
       value: token,
@@ -56,11 +60,22 @@ export default async (req: Request, context: Context) => {
       httpOnly: false,
       secure: true,
       sameSite: "None",
+      expires: expiryTime, // expires in 2 hrs
+      
     });
 
     context.cookies.set({
       name: "account_id",
       value: accountId,
+      domain: ".dragonson.com",
+      path: "/",
+      httpOnly: false,
+      secure: true,
+      sameSite: "None",
+    });
+    context.cookies.set({
+      name: "name",
+      value: name.replace(" ","-"),
       domain: ".dragonson.com",
       path: "/",
       httpOnly: false,
@@ -95,7 +110,7 @@ async function deleteExistingToken(
   uuid: string
 ) {
   const listTokenResponse = await fetch(
-    `https://app.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
+    `https://qa.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -103,6 +118,12 @@ async function deleteExistingToken(
       },
     }
   );
+  if (!listTokenResponse.ok) {
+    const errorText = await listTokenResponse.text();
+    console.error("Response Text:", errorText);
+    throw new Error(`HTTP error! status: ${listTokenResponse.status}`);
+  }
+
   const listAllToken = await listTokenResponse.json();
 
   await Promise.all(
@@ -113,7 +134,7 @@ async function deleteExistingToken(
 
       try {
         await fetch(
-          `https://app.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
+          `https://qa.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
           {
             method: "DELETE",
             headers: {
@@ -134,7 +155,7 @@ async function deleteExistingToken(
 async function getUUID(accountId: string, accessToken: string) {
   try {
     const response = await fetch(
-      `https://app.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
+      `https://qa.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -142,14 +163,13 @@ async function getUUID(accountId: string, accessToken: string) {
       }
     );
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch UUID: ${response.status} ${response.statusText}`
-      );
+      const errorText = await response.text();
+      console.error("Response Text:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(data.data.uuid);
-    return data.data.uuid;
+    return { uuid: data.data.uuid, name: data.data.name };
   } catch (error) {
     console.log(error);
   }
@@ -163,9 +183,11 @@ async function CreateChatbotToken(
   try {
     // Check if token already exists and delete if already exists
     await deleteExistingToken(accountId, accessToken, uuid);
+    // const now = new Date();
+    // const currentGMTTimeInMillis = now.getTime() + 120000;
 
     const response = await fetch(
-      `https://app.harness.io/ng/api/token?accountIdentifier=${accountId}`,
+      `https://qa.harness.io/ng/api/token?accountIdentifier=${accountId}`,
       {
         method: "POST",
         headers: {
@@ -179,9 +201,15 @@ async function CreateChatbotToken(
           apiKeyIdentifier: "x_api_key_chatbot",
           parentIdentifier: uuid,
           apiKeyType: "USER",
+          // "validTo": currentGMTTimeInMillis
         }),
       }
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Response Text:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     return data.data;

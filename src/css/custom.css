@@ -5,7 +5,11 @@
  */
 
 /* You can override the default Infima variables here. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
 :root {
+  font-family: Inter, sans-serif;
   --ifm-color-primary: #2e8555;
   --ifm-color-primary-dark: #29784c;
   --ifm-color-primary-darker: #277148;

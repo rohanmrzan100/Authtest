@@ -1,6 +1,6 @@
 [build]
  functions = "netlify/functions/"
- 
+
 [functions]
   node_bundler = "esbuild"
 
@@ -11,3 +11,5 @@
   from = "/api/*"
   status = 200
   to = "/.netlify/functions/:splat"
+
+

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.scss";
 import ReactMarkdown from "react-markdown";
-import { QueryChatbotAPI } from "./API";
+import { QueryChatbotAPI, formatDate, getXChatbotKeyCookie } from "./helpers";
 import Tooltip from "rc-tooltip";
 import { useColorMode } from "@docusaurus/theme-common";
+
 interface IAgent {
   text: string;
   isBot: boolean;
@@ -13,9 +14,11 @@ interface IAgent {
 const Chatbot = () => {
   const { colorMode } = useColorMode();
   const [show, setShow] = useState(false);
+  const [name, setName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [inputText, setInputText] = useState<string>("");
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [messages, setMessages] = useState<IAgent[]>([
     {
       text: "Accelerate your software delivery with the powerful capabilities of Harness’s Platform.",
@@ -28,25 +31,15 @@ const Chatbot = () => {
   ]);
 
   useEffect(() => {
-    const cookies = document.cookie.split(";").map((cookie) => cookie.trim());
-    const xChatbotKeyCookie = cookies.find((cookie) =>
-      cookie.startsWith("x_chatbot_key=")
-    );
-    const accountIdCookie = cookies.find((cookie) =>
-      cookie.startsWith("account_id=")
-    );
-    if (xChatbotKeyCookie && accountIdCookie) {
+    const cookie = getXChatbotKeyCookie();
+
+    if (cookie) {
       setIsLoggedIn(true);
+      setName(cookie.name.replace("-", " "));
     } else {
       setIsLoggedIn(false);
     }
   }, []);
-
-  useEffect(() => {
-    !show
-      ? (document.body.style.overflowY = "hidden")
-      : (document.body.style.overflowY = "scroll");
-  }, [show]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -66,32 +59,16 @@ const Chatbot = () => {
     }
   }, [isLoggedIn]);
 
-  async function handleQuerySubmit() {
-    if (!isLoggedIn) {
+  async function handleQuerySubmit(inputText: string) {
+    if (!isLoggedIn || isSessionExpired || inputText.trim() === "") {
       return;
     }
-    if (inputText.trim() === "") {
-      return;
-    }
-    const getXChatbotKeyCookie = () => {
-      const cookies = document.cookie.split(";").map((cookie) => cookie.trim());
-      const xChatbotKeyCookie = cookies.find((cookie) =>
-        cookie.startsWith("x_chatbot_key=")
-      );
-      const accountIdCookie = cookies.find((cookie) =>
-        cookie.startsWith("account_id=")
-      );
-      // const uuidCookie = cookies.find((cookie) => cookie.startsWith("uuid="));
-      if (xChatbotKeyCookie && accountIdCookie) {
-        const [, token] = xChatbotKeyCookie.split("=");
-        const [, id] = xChatbotKeyCookie.split("=");
-        // const [, uuid] = uuidCookie.split("=");
-        return { token, id };
-      }
-      return null;
-    };
 
     const cookie = getXChatbotKeyCookie();
+
+    if (isLoggedIn && !cookie) {
+      setIsSessionExpired(true);
+    }
 
     setMessages((prevMessages) => [
       ...prevMessages,
@@ -105,8 +82,7 @@ const Chatbot = () => {
       const response = await QueryChatbotAPI(
         inputText,
         cookie.id,
-        cookie.token,
-        "cookie.uuid"
+        cookie.token
       );
 
       setMessages((prevMessages) => [
@@ -118,7 +94,7 @@ const Chatbot = () => {
         ...prevMessages,
         { text: "Something went wrong !", isBot: true },
       ]);
-      console.error("Error fetching response from API:", error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +104,7 @@ const Chatbot = () => {
     if (!isLoggedIn) {
       return;
     }
+
     setMessages([
       {
         text: "Accelerate your software delivery with the powerful capabilities of Harness’s Platform.",
@@ -149,11 +126,7 @@ const Chatbot = () => {
       },
     ]);
   }
-  useEffect(() => {
-    if (chatboxRef.current) {
-      chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight;
-    }
-  }, [messages]);
+
   function toggleChatWindow() {
     setShow(!show);
   }
@@ -162,7 +135,7 @@ const Chatbot = () => {
     event
   ) => {
     if (event.key === "Enter") {
-      handleQuerySubmit();
+      handleQuerySubmit(inputText);
     }
   };
 
@@ -170,43 +143,37 @@ const Chatbot = () => {
     setInputText(event.target.value);
   };
 
-  function formatDate() {
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    const now = new Date();
-
-    const month = months[now.getMonth()];
-    const day = now.getDate();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-
-    const ampm = hours >= 12 ? "pm" : "am";
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-
-    return `${month} ${day}, ${formattedHours}:${formattedMinutes}${ampm}`;
-  }
   function handleSignIn() {
-    console.log("Hello");
-
     window.location.href =
-      "https://app.dragonson.com/sso.html?action=login&src=developerhub&return_to=https://developer.dragonson.com";
-    // setIsLoggedIn(true);
+      "http://localhost:5000/sso.html?action=login&src=developerhub&return_to=http://localhost:8888/";
   }
+
+  useEffect(() => {
+    if (isSessionExpired) {
+      setInputText("");
+      setIsLoggedIn(false);
+      scrollingTop();
+    }
+  }, [isSessionExpired]);
+
+  useEffect(() => {
+    if (chatboxRef.current) {
+      chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const scrollingTop = () => {
+    if (sessionExpiredElement.current) {
+      sessionExpiredElement.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "start",
+      });
+    }
+  };
   const chatboxRef = useRef<HTMLDivElement | null>(null);
+  const sessionExpiredElement = useRef<HTMLButtonElement | null>(null);
+
   return (
     <>
       <div onClick={toggleChatWindow} className={styles.AIDA_btn}>
@@ -223,11 +190,11 @@ const Chatbot = () => {
                 <h1>Harness AIDA Chatbot</h1>
               </div>
               <div className={styles.right} onClick={toggleChatWindow}>
-                X
+                <i className="fa-solid fa-chevron-down"></i>
               </div>
             </div>
             <p className={styles["chatbot-heading-text"]}>
-              AI Development Assistant
+              {name ? `Welcome back, ${name}!` : "AI Development Assistant"}{" "}
             </p>
             <hr />
           </div>
@@ -244,9 +211,14 @@ const Chatbot = () => {
                 }`}
               >
                 {message.isBot ? (
-                  <img src="/img/AIDA_Logo.svg" alt="AIDA logor"></img>
+                  <img src="/img/AIDA_Logo.svg" alt="AIDA logo"></img>
                 ) : null}
                 <div
+                  onClick={
+                    message.default
+                      ? () => handleQuerySubmit(message.text)
+                      : undefined
+                  }
                   key={index}
                   className={`${styles.message} ${
                     message.isBot
@@ -273,8 +245,12 @@ const Chatbot = () => {
             )}
             {!isLoggedIn && (
               <div className={styles.loginSection}>
-                <h1>Log into your Harness Account to access AIDA</h1>
-                <button onClick={handleSignIn}>
+                {isSessionExpired ? (
+                  <h1>Session expired please log in again</h1>
+                ) : (
+                  <h1>Log into your Harness Account to access AIDA</h1>
+                )}
+                <button onClick={handleSignIn} ref={sessionExpiredElement}>
                   Sign In
                   <i className="fa-solid fa-arrow-right-to-bracket"></i>
                 </button>
@@ -284,19 +260,13 @@ const Chatbot = () => {
         </div>
         <div className={styles["chatbot-input"]}>
           <Tooltip placement="top" overlay="Clear History">
-            {colorMode === "light" ? (
-              <img
-                src="./img/Bars.svg"
-                alt="Menu Icon "
-                onClick={handleClearHistory}
-              />
-            ) : (
-              <img
-                src="./img/BarsDark.svg"
-                alt="Menu Icon "
-                onClick={handleClearHistory}
-              />
-            )}
+            <img
+              src={
+                colorMode === "light" ? "./img/Bars.svg" : "./img/BarsDark.svg"
+              }
+              alt="Menu Icon "
+              onClick={handleClearHistory}
+            />
           </Tooltip>
 
           <input
@@ -308,19 +278,15 @@ const Chatbot = () => {
             disabled={!isLoggedIn}
           />
 
-          {colorMode === "light" ? (
-            <img
-              src="./img/SendIcon.svg"
-              alt="Send Icon "
-              onClick={handleQuerySubmit}
-            />
-          ) : (
-            <img
-              src="./img/SendIconDark.svg"
-              alt="Send Icon "
-              onClick={handleQuerySubmit}
-            />
-          )}
+          <img
+            src={
+              colorMode === "light"
+                ? "./img/SendIcon.svg"
+                : "./img/SendIconDark.svg"
+            }
+            alt="Send Icon"
+            onClick={() => handleQuerySubmit(inputText)}
+          />
         </div>
       </div>
     </>

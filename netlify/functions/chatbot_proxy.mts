@@ -22,7 +22,7 @@ export default async (req: Request, context: Context) => {
   }
   const body: Body = await req.json();
 
-  if (!body.account_id || !body.query || !body.uuid) {
+  if (!body.account_id || !body.query) {
     return new Response(JSON.stringify({ error: "Please send all fields" }), {
       status: 400,
     });
@@ -38,7 +38,7 @@ export default async (req: Request, context: Context) => {
   }
   try {
     const response = await fetch(
-      "https://app.harness.io/gateway/notifications/api/notifications/harness-bot?routingId=" +
+      "https://qa.harness.io/gateway/notifications/api/notifications/harness-bot?routingId=" +
         body.account_id,
       {
         method: "POST",
@@ -49,6 +49,11 @@ export default async (req: Request, context: Context) => {
         body: JSON.stringify({ question: body.query }),
       }
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Response Text:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const responseData = await response.json();
     console.log(responseData);
@@ -64,17 +69,19 @@ export default async (req: Request, context: Context) => {
       throw new Error(`Failed to rotated Token`);
     }
 
+    const expiryTime = new Date();
+    expiryTime.setMinutes(expiryTime.getMinutes() + 120);
     context.cookies.set({
       name: "x_chatbot_key",
-      value: rotatedToken,
-      domain: ".dragonson.com",
+      value: token,
+      domain: ".harness.io",
       path: "/",
       httpOnly: false,
       secure: true,
       sameSite: "None",
+      expires: expiryTime,
     });
 
-   
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: {
@@ -94,11 +101,11 @@ async function RotateToken(accountId: string, token: string, uuid: string) {
   try {
     const now = new Date();
 
-    /// valid for 2 hours
-    const currentGMTTimeInMillis = now.getTime() + 1000 * 60 * 60 * 2;
+    /// valid for 2 hrs
+    const currentGMTTimeInMillis = now.getTime() + 7200000;
 
     const response = await fetch(
-      `https://app.harness.io/ng/api/token/rotate/x_chatbot_key?accountIdentifier=${accountId}&apiKeyType=USER&parentIdentifier=${uuid}&apiKeyIdentifier=x_api_key_chatbot&rotateTimestamp=${currentGMTTimeInMillis}`,
+      `https://qa.harness.io/ng/api/token/rotate/x_chatbot_key?accountIdentifier=${accountId}&apiKeyType=USER&parentIdentifier=${uuid}&apiKeyIdentifier=x_api_key_chatbot&rotateTimestamp=${currentGMTTimeInMillis}`,
       {
         headers: {
           "x-api-key": token,
@@ -116,9 +123,9 @@ async function RotateToken(accountId: string, token: string, uuid: string) {
     );
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to rotate token: ${response.status} ${response.statusText}`
-      );
+      const errorText = await response.text();
+      console.error("Response Text:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -134,7 +141,7 @@ async function deleteExistingToken(
   uuid: string
 ) {
   const listTokenResponse = await fetch(
-    `https://app.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
+    `https://qa.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -142,11 +149,13 @@ async function deleteExistingToken(
       },
     }
   );
+
   if (!listTokenResponse.ok) {
-    throw new Error(
-      `Failed to fetch UUID: ${listTokenResponse.status} ${listTokenResponse.statusText}`
-    );
+    const errorText = await listTokenResponse.text();
+    console.error("Response Text:", errorText);
+    throw new Error(`HTTP error! status: ${listTokenResponse.status}`);
   }
+
   const listAllToken = await listTokenResponse.json();
 
   const filteredArray = listAllToken.data.content.filter((item: any) => {
@@ -162,7 +171,6 @@ async function deleteExistingToken(
       if (token.token.apiKeyIdentifier == "x_chatbot_key") {
         return;
       }
-      console.log({ index });
 
       // ignore newest three tokena
       if (index < 2) {
@@ -171,7 +179,7 @@ async function deleteExistingToken(
 
       try {
         await fetch(
-          `https://app.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
+          `https://qa.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
           {
             method: "DELETE",
             headers: {
@@ -182,7 +190,6 @@ async function deleteExistingToken(
         );
       } catch (error) {
         console.log(error);
-        console.log("Error Deleting Token");
       }
       // }
     })
@@ -192,7 +199,7 @@ async function deleteExistingToken(
 async function getUUID(accountId: string, token: string) {
   try {
     const response = await fetch(
-      `https://app.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
+      `https://qa.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
       {
         headers: {
           "x-api-key": token,
@@ -200,13 +207,12 @@ async function getUUID(accountId: string, token: string) {
       }
     );
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch UUID: ${response.status} ${response.statusText}`
-      );
+      const errorText = await response.text();
+      console.error("Response Text:", errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(data.data.uuid);
     return data.data.uuid;
   } catch (error) {
     console.log({ error });

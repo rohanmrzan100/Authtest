@@ -1,20 +1,20 @@
 {
 	"geolocation": {
 		"data": {
-			"city": "Kathmandu",
+			"city": "Los Angeles",
 			"country": {
-				"code": "NP",
-				"name": "Nepal"
+				"code": "US",
+				"name": "United States"
 			},
 			"subdivision": {
-				"code": "P3",
-				"name": "Bagmati Province"
+				"code": "CA",
+				"name": "California"
 			},
-			"timezone": "Asia/Kathmandu",
-			"latitude": 27.6974,
-			"longitude": 85.3318
+			"timezone": "America/Los_Angeles",
+			"latitude": 34.0544,
+			"longitude": -118.2441
 		},
-		"timestamp": 1717682698617
+		"timestamp": 1718717952822
 	},
 	"siteId": "6a6e0a11-3a35-43d9-bd2f-f28650dd0872"
 }

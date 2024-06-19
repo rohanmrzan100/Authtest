@@ -120,7 +120,7 @@
   }
 
   .chat-box {
-    max-height: 400px;
+    max-height: 70vh;
     margin: 0;
     padding: 0;
     padding-bottom: 20px;
@@ -213,11 +213,15 @@
         border-radius: 8px;
         margin-bottom: 8px;
         min-height: 36px;
+        position: relative;
+        flex-wrap: wrap;
+        max-width: 350px;
 
         .markdownContent {
           a {
             color: #0092e4;
           }
+
           p {
             margin: 0;
             padding: 0;
@@ -288,8 +292,8 @@
     border-radius: 4px;
     box-shadow: none;
     border: none;
-    &::placeholder{
-      color: #AEAEAE;
+    &::placeholder {
+      color: #aeaeae;
     }
   }
 
