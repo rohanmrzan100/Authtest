@@ -7,7 +7,7 @@ interface Body {
 }
 export default async (req: Request, context: Context) => {
   const header = {
-    // "Access-Control-Allow-Origin": "https://qa.harness.io",
+    // "Access-Control-Allow-Origin": "https://app.harness.io",
     "Access-Control-Allow-Origin": "https://app.dragonson.com",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
@@ -110,7 +110,7 @@ async function deleteExistingToken(
   uuid: string
 ) {
   const listTokenResponse = await fetch(
-    `https://qa.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
+    `https://app.harness.io/ng/api/token/aggregate?accountIdentifier=${accountId}&apiKeyType=USER`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -134,7 +134,7 @@ async function deleteExistingToken(
 
       try {
         await fetch(
-          `https://qa.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
+          `https://app.harness.io/ng/api/token/${token.token.identifier}?accountIdentifier=${accountId}&apiKeyType=${token.token.apiKeyType}&parentIdentifier=${uuid}&apiKeyIdentifier=${token.token.apiKeyIdentifier}`,
           {
             method: "DELETE",
             headers: {
@@ -155,7 +155,7 @@ async function deleteExistingToken(
 async function getUUID(accountId: string, accessToken: string) {
   try {
     const response = await fetch(
-      `https://qa.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
+      `https://app.harness.io/gateway/ng/api/user/currentUser?accountIdentifier=${accountId}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -187,7 +187,7 @@ async function CreateChatbotToken(
     // const currentGMTTimeInMillis = now.getTime() + 120000;
 
     const response = await fetch(
-      `https://qa.harness.io/ng/api/token?accountIdentifier=${accountId}`,
+      `https://app.harness.io/ng/api/token?accountIdentifier=${accountId}`,
       {
         method: "POST",
         headers: {
