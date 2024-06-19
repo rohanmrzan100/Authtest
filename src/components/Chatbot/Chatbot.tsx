@@ -145,7 +145,7 @@ const Chatbot = () => {
 
   function handleSignIn() {
     window.location.href =
-      "http://localhost:5000/sso.html?action=login&src=developerhub&return_to=http://localhost:8888/";
+      "https://app.dragonson.com/sso.html?action=login&src=developerhub&return_to=https://developer.dragonson.com/";
   }
 
   useEffect(() => {
