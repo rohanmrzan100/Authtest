@@ -1,3 +1,13 @@
+import { AnalyticsBrowser } from "@segment/analytics-next";
+
+export const analytics = AnalyticsBrowser.load({
+  writeKey: "NreuAAOyjXlVKOvRVOnk9vz6lNZX72a0",
+});
+
+const cookies = document.cookie.split(";").map((cookie) => cookie.trim());
+const nameCookie = cookies.find((cookie) => cookie.startsWith("name="));
+const [, name] = nameCookie.split("=");
+
 export async function QueryChatbotAPI(
   query: string,
   id: string,
@@ -16,7 +26,13 @@ export async function QueryChatbotAPI(
   });
 
   const data = await res.json();
+  analytics.track("chatbot use", {
+    query: query,
+  });
 
+  analytics.identify({
+    user: name,
+  });
   if (!data.data) {
     return "Something went wrong!";
   }
@@ -73,3 +89,7 @@ export const getXChatbotKeyCookie = () => {
   }
   return null;
 };
+
+export function deleteCookie(name: string) {
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
