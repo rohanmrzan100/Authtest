@@ -116,7 +116,7 @@ const Chatbot = () => {
           query: inputText,
         });
 
-        analytics.identify({
+        analytics.identify(cookie.id,{
           user: name,
         });
       }
