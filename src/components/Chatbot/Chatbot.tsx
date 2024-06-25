@@ -9,6 +9,8 @@ import {
 } from "./helpers";
 import Tooltip from "rc-tooltip";
 
+import { AnalyticsBrowser } from "@segment/analytics-next";
+
 interface IAgent {
   text: string;
   isBot: boolean;
@@ -16,6 +18,10 @@ interface IAgent {
 }
 
 const Chatbot = () => {
+  const analytics = AnalyticsBrowser.load({
+    writeKey: "NreuAAOyjXlVKOvRVOnk9vz6lNZX72a0",
+  });
+
   const [show, setShow] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +41,7 @@ const Chatbot = () => {
   ]);
 
   useEffect(() => {
-    const cookie = getXChatbotKeyCookie();  
+    const cookie = getXChatbotKeyCookie();
     const urlParams = new URLSearchParams(window.location.search);
     const chatbot = urlParams.get("chatbot");
     if (chatbot === "true") {
@@ -65,7 +71,7 @@ const Chatbot = () => {
           default: true,
         },
       ]);
-    }else{
+    } else {
       setMessages([
         {
           text: "Accelerate your software delivery with the powerful capabilities of Harness’s Platform.",
@@ -75,7 +81,7 @@ const Chatbot = () => {
           text: "How can I help?",
           isBot: true,
         },
-      ])
+      ]);
     }
   }, [isLoggedIn]);
 
@@ -105,6 +111,15 @@ const Chatbot = () => {
         cookie.token
       );
 
+      if (response) {
+        analytics.track("chatbot use", {
+          query: inputText,
+        });
+
+        analytics.identify({
+          user: name,
+        });
+      }
       setMessages((prevMessages) => [
         ...prevMessages,
         { text: response, isBot: true },
