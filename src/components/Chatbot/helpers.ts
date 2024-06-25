@@ -16,7 +16,6 @@ export async function QueryChatbotAPI(
   });
 
   const data = await res.json();
-
   if (!data.data) {
     return "Something went wrong!";
   }
