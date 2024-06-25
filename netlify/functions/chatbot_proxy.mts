@@ -74,7 +74,7 @@ export default async (req: Request, context: Context) => {
     context.cookies.set({
       name: "x_chatbot_key",
       value: token,
-      domain: ".harness.io",
+      domain: ".dragonson.com",
       path: "/",
       httpOnly: false,
       secure: true,
