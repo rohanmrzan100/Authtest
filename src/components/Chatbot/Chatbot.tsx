@@ -267,7 +267,7 @@ const Chatbot = () => {
                 <h1>Harness AIDA Chatbot</h1>
               </div>
               <div className={styles.right} onClick={toggleChatWindow}>
-                <i className="fa-solid fa-chevron-down"></i>
+               X
               </div>
             </div>
             <p className={styles["chatbot-heading-text"]}>

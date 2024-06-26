@@ -94,10 +94,11 @@
       margin: 0;
     }
 
-    .chatbot-heading-top .right i {
+    .chatbot-heading-top .right {
       width: 16px;
       height: 8px;
       color: var(headingIcon);
+      cursor: pointer;
     }
 
     .chatbot-heading-text {
@@ -406,7 +407,6 @@
       10014px 0 0 0 #6c44db;
   }
 }
-
 
 // for mobile
 @media screen and (max-width: 450px) {
