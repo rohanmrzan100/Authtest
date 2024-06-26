@@ -2,6 +2,8 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
+import path from "path";
+
 const config: Config = {
   title: "My Site",
   tagline: "Dinosaurs are cool",
@@ -63,9 +65,7 @@ const config: Config = {
         alt: "My Site Logo",
         src: "img/logo.svg",
       },
-      items: [
-      
-      ],
+      items: [],
     },
     footer: {
       style: "dark",
@@ -79,7 +79,6 @@ const config: Config = {
             },
           ],
         },
-
       ],
       copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
     },
@@ -88,11 +87,8 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
-  plugins: [
-
-    "docusaurus-plugin-sass",
-
-  ],
+  plugins: ["docusaurus-plugin-sass"],
+  clientModules: [path.join(__dirname, "/client_module/chatbot")],
 };
 
 export default config;

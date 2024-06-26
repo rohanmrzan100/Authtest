@@ -45,6 +45,12 @@ const Chatbot = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const chatbot = urlParams.get("chatbot");
     if (chatbot === "true") {
+      console.log("chatbot window open");
+
+      analytics.track("chatbot window open", {
+        user: name,
+      });
+
       setShow(true);
     }
 
@@ -116,7 +122,7 @@ const Chatbot = () => {
           query: inputText,
         });
 
-        analytics.identify(cookie.id,{
+        analytics.identify(cookie.id, {
           user: name,
         });
       }
@@ -163,6 +169,13 @@ const Chatbot = () => {
   }
 
   function toggleChatWindow() {
+    if (!show) {
+      console.log("chatbot window open");
+      analytics.track("chatbot window open", {
+        user: name,
+      });
+    }
+
     setShow(!show);
   }
 
