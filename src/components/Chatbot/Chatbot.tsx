@@ -1,5 +1,5 @@
+import Tooltip from "rc-tooltip";
 import React, { useEffect, useRef, useState } from "react";
-import styles from "./styles.module.scss";
 import ReactMarkdown from "react-markdown";
 import {
   QueryChatbotAPI,
@@ -7,9 +7,11 @@ import {
   formatDate,
   getXChatbotKeyCookie,
 } from "./helpers";
-import Tooltip from "rc-tooltip";
+import styles from "./styles.module.scss";
 
 import { AnalyticsBrowser } from "@segment/analytics-next";
+import { AidaActions, AidaClient } from "../Telemetry/TememetryConstants";
+import { Telemetry } from "../Telemetry/useTelementry";
 
 interface IAgent {
   text: string;
@@ -118,12 +120,9 @@ const Chatbot = () => {
       );
 
       if (response) {
-        analytics.track("chatbot use", {
-          query: inputText,
-        });
-
-        analytics.identify(cookie.id, {
-          user: name,
+        Telemetry(AidaActions.AnswerReceived, {
+          inputText,
+          answer: response,
         });
       }
       setMessages((prevMessages) => [
@@ -169,13 +168,6 @@ const Chatbot = () => {
   }
 
   function toggleChatWindow() {
-    if (!show) {
-      console.log("chatbot window open");
-      analytics.track("chatbot window open", {
-        user: name,
-      });
-    }
-
     setShow(!show);
   }
 
@@ -248,6 +240,10 @@ const Chatbot = () => {
     setIsLoggedIn(false);
   }
 
+  Telemetry(AidaActions.AIDAInteractionStarted, {
+    aidaClient: AidaClient.CS_BOT,
+  });
+
   return (
     <>
       <Tooltip placement="left" overlay="Ask AIDA">
@@ -267,7 +263,7 @@ const Chatbot = () => {
                 <h1>Harness AIDA Chatbot</h1>
               </div>
               <div className={styles.right} onClick={toggleChatWindow}>
-               X
+                X
               </div>
             </div>
             <p className={styles["chatbot-heading-text"]}>
